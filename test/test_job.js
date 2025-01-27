@@ -4,7 +4,7 @@ const Job = require('../lib/job');
 const Queue = require('../lib/queue');
 const expect = require('expect.js');
 const redis = require('ioredis');
-const uuid = require('uuid');
+const nanoId = require('nanoid');
 const delay = require('delay');
 
 describe('Job', () => {
@@ -17,7 +17,7 @@ describe('Job', () => {
   });
 
   beforeEach(() => {
-    queue = new Queue('test-' + uuid.v4(), {
+    queue = new Queue('test-' + nanoId.random(), {
       redis: { port: 6379, host: '127.0.0.1' }
     });
   });

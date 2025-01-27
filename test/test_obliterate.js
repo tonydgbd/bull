@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const uuid = require('uuid');
+const nanoId = require('nanoid');
 const utils = require('./utils');
 const delay = require('delay');
 
@@ -9,7 +9,7 @@ describe('Obliterate', () => {
   let queue;
 
   beforeEach(() => {
-    queue = utils.buildQueue('cleaner' + uuid.v4());
+    queue = utils.buildQueue('cleaner' + nanoId.random());
   });
 
   afterEach(function() {

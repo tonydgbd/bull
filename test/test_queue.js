@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 const redis = require('ioredis');
 const sinon = require('sinon');
 const _ = require('lodash');
-const uuid = require('uuid');
+const nanoId = require('nanoid');
 const utils = require('./utils');
 const delay = require('delay');
 
@@ -591,7 +591,7 @@ describe('Queue', () => {
 
       it('should remove a job after completed if the default job options specify removeOnComplete', done => {
         utils
-          .newQueue('test-' + uuid.v4(), {
+          .newQueue('test-' + nanoId.random(), {
             defaultJobOptions: {
               removeOnComplete: true
             }
@@ -810,7 +810,7 @@ describe('Queue', () => {
       it('should keep specified number of jobs after completed with global removeOnComplete', async () => {
         const keepJobs = 3;
 
-        const localQueue = await utils.newQueue('test-' + uuid.v4(), {
+        const localQueue = await utils.newQueue('test-' + nanoId.random(), {
           defaultJobOptions: {
             removeOnComplete: keepJobs
           }
@@ -879,7 +879,7 @@ describe('Queue', () => {
 
       it('should remove a job after fail if the default job options specify removeOnFail', done => {
         utils
-          .newQueue('test-' + uuid.v4(), {
+          .newQueue('test-' + nanoId.random(), {
             defaultJobOptions: {
               removeOnFail: true
             }
@@ -960,7 +960,7 @@ describe('Queue', () => {
       it('should keep specified number of jobs after completed with global removeOnFail', async () => {
         const keepJobs = 3;
 
-        const localQueue = await utils.newQueue('test-' + uuid.v4(), {
+        const localQueue = await utils.newQueue('test-' + nanoId.random(), {
           defaultJobOptions: {
             removeOnFail: keepJobs
           }
@@ -1106,9 +1106,9 @@ describe('Queue', () => {
             await delay(50);
           }
         );
-  
+
         await queue.add({ foo: 'bar' }, { jobId: 'a1' });
-    
+
         await new Promise(resolve => {
           queue.once('global:duplicated', (jobId) => {
             expect(jobId).to.be.equal('a1');
@@ -1125,9 +1125,9 @@ describe('Queue', () => {
             await delay(50);
           }
         );
-  
+
         await queue.add({ foo: 'bar' }, { jobId: 'a1' });
-    
+
         await new Promise(resolve => {
           queue.once('duplicated', (jobId) => {
             expect(jobId).to.be.equal('a1');
@@ -1144,7 +1144,7 @@ describe('Queue', () => {
             { foo: 'bar' },
             { debounce: { id: 'a1', ttl: 2000 } },
           );
-  
+
           let debouncedCounter = 0;
           let secondJob = null;
           queue.on('debounced', (jobId) => {
@@ -1155,7 +1155,7 @@ describe('Queue', () => {
             }
             debouncedCounter++;
           });
-  
+
           await delay(1000);
           await queue.add(
             { foo: 'bar' },
@@ -1179,7 +1179,7 @@ describe('Queue', () => {
             { debounce: { id: 'a1', ttl: 2000 } },
           );
           await delay(100);
-  
+
           expect(debouncedCounter).to.be.equal(4);
         });
       });
@@ -1244,37 +1244,37 @@ describe('Queue', () => {
               await delay(100);
             }
           );
-      
+
           let debouncedCounter = 0;
-  
+
           const completing = new Promise(resolve => {
             queue.once('completed', ({ id }) => {
               expect(id).to.be.equal('1');
               resolve();
             });
-  
+
             queue.on('debounced', () => {
               debouncedCounter++;
             });
           });
-    
+
           await queue.add({ foo: 'bar' }, { debounce: { id: 'a1' } });
-  
+
           await completing;
-  
+
           const secondJob = await queue.add(
             { foo: 'bar' },
             { debounce: { id: 'a1' } },
           );
-  
+
           const count = await queue.getJobCountByTypes();
-  
+
           expect(count).to.be.eql(2);
-  
+
           expect(debouncedCounter).to.be.equal(2);
           expect(secondJob.id).to.be.equal('4');
         });
-      });  
+      });
     });
 
     it('process a job that updates progress', done => {
@@ -1842,7 +1842,7 @@ describe('Queue', () => {
     it('process stalled jobs without requiring a queue restart', function(done) {
       this.timeout(12000);
 
-      const queue2 = utils.buildQueue('running-stalled-job-' + uuid.v4(), {
+      const queue2 = utils.buildQueue('running-stalled-job-' + nanoId.random(), {
         settings: {
           lockRenewTime: 5000,
           lockDuration: 500,
@@ -1883,7 +1883,7 @@ describe('Queue', () => {
       const FAILED_MESSAGE = 'job stalled more than allowable limit';
       this.timeout(10000);
 
-      const queue2 = utils.buildQueue('running-stalled-job-' + uuid.v4(), {
+      const queue2 = utils.buildQueue('running-stalled-job-' + nanoId.random(), {
         settings: {
           lockRenewTime: 2500,
           lockDuration: 250,
@@ -1923,7 +1923,7 @@ describe('Queue', () => {
       const FAILED_MESSAGE = 'job stalled more than allowable limit';
       this.timeout(10000);
 
-      const queue2 = utils.buildQueue('running-stalled-job-' + uuid.v4(), {
+      const queue2 = utils.buildQueue('running-stalled-job-' + nanoId.random(), {
         settings: {
           lockRenewTime: 2500,
           lockDuration: 250,
@@ -1960,7 +1960,7 @@ describe('Queue', () => {
     });
 
     it('should clear job from stalled set when job completed', done => {
-      const queue2 = utils.buildQueue('running-job-' + uuid.v4(), {
+      const queue2 = utils.buildQueue('running-job-' + nanoId.random(), {
         settings: {
           stalledInterval: 10
         }
@@ -2362,7 +2362,7 @@ describe('Queue', () => {
     it('should process delayed jobs in correct order even in case of restart', function(done) {
       this.timeout(15000);
 
-      const QUEUE_NAME = 'delayed queue multiple' + uuid.v4();
+      const QUEUE_NAME = 'delayed queue multiple' + nanoId.random();
       let order = 1;
 
       queue = new Queue(QUEUE_NAME);
@@ -2407,7 +2407,7 @@ describe('Queue', () => {
     });
 
     it('should process delayed jobs with exact same timestamps in correct order (FIFO)', done => {
-      const QUEUE_NAME = 'delayed queue multiple' + uuid.v4();
+      const QUEUE_NAME = 'delayed queue multiple' + nanoId.random();
       queue = new Queue(QUEUE_NAME);
       let order = 1;
 
@@ -3215,7 +3215,7 @@ describe('Queue', () => {
     let queue;
 
     beforeEach(() => {
-      queue = utils.buildQueue('cleaner' + uuid.v4());
+      queue = utils.buildQueue('cleaner' + nanoId.random());
     });
 
     afterEach(function() {
@@ -3250,7 +3250,7 @@ describe('Queue', () => {
     });
 
     it('should clean an empty queue', done => {
-      const testQueue = utils.buildQueue('cleaner' + uuid.v4());
+      const testQueue = utils.buildQueue('cleaner' + nanoId.random());
       testQueue.isReady().then(() => {
         return testQueue.clean(0);
       });
